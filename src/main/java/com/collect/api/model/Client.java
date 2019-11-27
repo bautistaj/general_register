@@ -12,7 +12,7 @@ import javax.persistence.Table;
 
 import lombok.Data;
 
-@Data
+
 @Entity
 @Table(name="clients")
 public class Client implements Serializable {
@@ -44,4 +44,78 @@ public class Client implements Serializable {
 	private Date createdAt;
 	
 	private String photo;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getFirstLastName() {
+		return firstLastName;
+	}
+
+	public void setFirstLastName(String firstLastName) {
+		this.firstLastName = firstLastName;
+	}
+
+	public String getSecondLastName() {
+		return secondLastName;
+	}
+
+	public void setSecondLastName(String secondLastName) {
+		this.secondLastName = secondLastName;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public Date getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(Date birthday) {
+		this.birthday = birthday;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public String getPhoto() {
+		return photo;
+	}
+
+	public void setPhoto(String photo) {
+		this.photo = photo;
+	}
+	
+	
 }
