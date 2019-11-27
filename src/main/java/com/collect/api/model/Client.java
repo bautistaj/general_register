@@ -42,4 +42,6 @@ public class Client implements Serializable {
 	
 	@Column(nullable = false)
 	private Date createdAt;
+	
+	private String photo;
 }
