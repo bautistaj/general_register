@@ -18,7 +18,7 @@ import javax.persistence.UniqueConstraint;
 
 import lombok.Data;
 
-
+@Data
 @Entity
 @Table(name = "users")
 public class User implements Serializable{
@@ -29,7 +29,7 @@ public class User implements Serializable{
 	private Long id;
 	
 	@Column(unique = true, length = 20)
-	private String userName;
+	private String username;
 	
 	@Column(length = 60)
 	private String password;
@@ -44,54 +44,5 @@ public class User implements Serializable{
 	inverseJoinColumns = @JoinColumn(name = "id_role"),
 	uniqueConstraints = {@UniqueConstraint(columnNames = {"id_user","id_role"})})
 	private Set<Role> roles;
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getUserName() {
-		return userName;
-	}
-
-	public void setUserName(String userName) {
-		this.userName = userName;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public Boolean getEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(Boolean enabled) {
-		this.enabled = enabled;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public Set<Role> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(Set<Role> roles) {
-		this.roles = roles;
-	}
-	
 	
 }

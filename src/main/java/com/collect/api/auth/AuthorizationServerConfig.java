@@ -17,7 +17,8 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 @SuppressWarnings("deprecation")
 @Configuration
 @EnableAuthorizationServer
-public class AuthorizationServiceConfig extends AuthorizationServerConfigurerAdapter {
+public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+	
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
 
@@ -57,6 +58,7 @@ public class AuthorizationServiceConfig extends AuthorizationServerConfigurerAda
 	@Bean
 	public JwtAccessTokenConverter accessTokenConverter() {
 		JwtAccessTokenConverter jwtAccessTokenConverter = new JwtAccessTokenConverter();
+		jwtAccessTokenConverter.setSigningKey("collect_app_2019");
 		return jwtAccessTokenConverter;
 	}
 }

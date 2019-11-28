@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,8 +40,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.collect.api.model.Client;
 import com.collect.api.service.IClientService;
 
-import net.bytebuddy.implementation.bytecode.Throw;
-
 @CrossOrigin(origins = {"*"})
 @RestController
 @RequestMapping("/api")
@@ -53,13 +52,17 @@ public class ClientController {
 	public List<Client> index(){
 		return clientService.findAll();
 	}
-	
+
+
+	@Secured({"ROLE_ADMIN","ROLE_USER"})
 	@GetMapping("/clients/page/{page}")
 	public Page<Client> index(@PathVariable Integer page){
 		Pageable pageable = PageRequest.of(page, 5);
 		return clientService.findAll(pageable);
 	}
 	
+	
+	@Secured({"ROLE_ADMIN","ROLE_USER"})
 	@GetMapping("/clients/{id}")
 	public ResponseEntity<?> show(@PathVariable Long id){
 		Client client = null;
@@ -82,6 +85,8 @@ public class ClientController {
 		return new ResponseEntity<Client>(client, HttpStatus.OK);
 	}
 	
+	
+	@Secured({"ROLE_ADMIN"})
 	@PostMapping("/clients")
 	public ResponseEntity<?> create(@RequestBody Client client, BindingResult result){
 		Map<String, Object> response = new HashMap<>();
@@ -115,6 +120,8 @@ public class ClientController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 	}
 	
+	
+	@Secured({"ROLE_ADMIN","ROLE_USER"})
 	@PutMapping("/clients/{id}")
 	public ResponseEntity<?> update(@RequestBody Client client, @PathVariable Long id){
 		Map<String, Object> response = new HashMap<>();
@@ -152,6 +159,7 @@ public class ClientController {
 	}
 	
 	
+	@Secured({"ROLE_ADMIN","ROLE_USER"})
 	@DeleteMapping("/clients/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public ResponseEntity<?> delete(@PathVariable Long id){
@@ -189,6 +197,8 @@ public class ClientController {
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
 	
+	
+	@Secured({"ROLE_ADMIN","ROLE_USER"})
 	@PostMapping("/clients/photo")
 	public ResponseEntity<?> upload(@RequestParam("photo") MultipartFile file, @RequestParam("id")  Long id){
 		Map<String, Object> response = new HashMap<>();
@@ -235,6 +245,8 @@ public class ClientController {
 		
 	}
 	
+	
+	@Secured({"ROLE_ADMIN","ROLE_USER"})
 	@GetMapping("/clients/photo/{fileName:.+}")
 	public ResponseEntity<Resource> showPhoto(@PathVariable String fileName){
 
