@@ -223,7 +223,7 @@ public class ClientController {
 				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
-			String previusPhoto = client.getPhone();
+			String previusPhoto = client.getPhoto();
 
 			if (previusPhoto != null && !previusPhoto.isEmpty()) {
 				Path previusFilePath = Paths.get("upload").resolve(previusPhoto).toAbsolutePath();
@@ -234,19 +234,18 @@ public class ClientController {
 				}
 			}
 
-			client.setPhone(name);
+			client.setPhoto(name);
 			clientService.save(client);
 
 		}
 
 		response.put("message", "Client updated");
-		response.put("clientd", client);
+		response.put("client", client);
 
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 
 	}
 
-	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
 	@GetMapping("/clients/photo/{fileName:.+}")
 	public ResponseEntity<Resource> showPhoto(@PathVariable String fileName) {
 
