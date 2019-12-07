@@ -3,13 +3,12 @@ package com.collect.api.controller;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
@@ -41,6 +40,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.collect.api.model.Client;
 import com.collect.api.service.IClientService;
+import com.collect.api.service.IFileService;
+import com.collect.api.util.FileUtil;
+
+import ch.qos.logback.classic.pattern.Util;
 
 @CrossOrigin(origins = { "*" })
 @RestController
@@ -49,6 +52,9 @@ public class ClientController {
 
 	@Autowired
 	private IClientService clientService;
+	
+	@Autowired
+	private IFileService fileService;
 
 	@GetMapping("/clients")
 	public List<Client> index() {
@@ -177,7 +183,7 @@ public class ClientController {
 				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
 			}
 
-			String previusPhoto = client.getPhone();
+			String previusPhoto = client.getPhoto();
 
 			if (previusPhoto != null && !previusPhoto.isEmpty()) {
 				Path previusFilePath = Paths.get("upload").resolve(previusPhoto).toAbsolutePath();
@@ -211,27 +217,20 @@ public class ClientController {
 		}
 
 		if (!file.isEmpty()) {
-			String name = UUID.randomUUID().toString() + "_" + file.getOriginalFilename().replace(" ", "");
-			Path filePath = Paths.get("upload").resolve(name).toAbsolutePath();
-
+			String name = "";
 			try {
 
-				Files.copy(file.getInputStream(), filePath);
-
+				name = FileUtil.saveFile(file, "upload");
+				
 			} catch (IOException e) {
-				response.put("message", "Error to delete client");
+				response.put("message", "Error to create file");
 				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 			String previusPhoto = client.getPhoto();
 
 			if (previusPhoto != null && !previusPhoto.isEmpty()) {
-				Path previusFilePath = Paths.get("upload").resolve(previusPhoto).toAbsolutePath();
-				File previusFile = previusFilePath.toFile();
-
-				if (previusFile.exists()) {
-					previusFile.delete();
-				}
+				FileUtil.deleteFile("upload", previusPhoto);
 			}
 
 			client.setPhoto(name);
@@ -269,4 +268,112 @@ public class ClientController {
 
 		return new ResponseEntity<Resource>(resource, headers, HttpStatus.OK);
 	}
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
+	@GetMapping("/clients/{id}/files")
+	public ResponseEntity<?> getFiles(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
+		
+		Client client = clientService.findById(id);
+		if (client == null) {
+			response.put("message", "Clien not found");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+		
+		List<com.collect.api.model.File> files = fileService.findByIdClient(client.getId());
+		
+		if (files.isEmpty()) {
+			response.put("message", "Files not found");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+		
+		response.put("files", files);
+		response.put("message", "Files retrived");
+		
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	}
+	
+	@Secured({ "ROLE_ADMIN", "ROLE_USER" })
+	@PostMapping("/clients/files")
+	public ResponseEntity<?> saveFiles(@RequestParam Map<String, MultipartFile> files, @RequestParam("id") Long id) {
+		Map<String, Object> response = new HashMap<>();
+	
+		Client client = clientService.findById(id);
+		List<com.collect.api.model.File> lstFile = new ArrayList<com.collect.api.model.File>();
+		if (client == null) {
+			response.put("message", "Clien not found");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+		
+		for (Map.Entry<String, MultipartFile> entry : files.entrySet()) {
+			
+			try {
+				String realName = entry.getValue().getOriginalFilename();
+				String fileName = FileUtil.saveFile(entry.getValue(), "upload");
+				
+				com.collect.api.model.File file = new com.collect.api.model.File();
+				
+				file.setClient(client);
+				file.setFileName(realName);
+				file.setStorePath(fileName);
+				
+				file = fileService.save(file);
+				
+				lstFile.add(file);
+				
+			} catch (IOException e) {
+				response.put("message", "Error to create file");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+		
+		response.put("message", "Files added");
+		response.put("files", lstFile);
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	}
+
+	@DeleteMapping("/clients/files/{id}")
+	public ResponseEntity<?> delteFile(@PathVariable Long id) {
+		Map<String, Object> response = new HashMap<>();
+		com.collect.api.model.File file =  fileService.findById(id);
+
+		if (file == null) {
+			response.put("message", "File not found");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.NOT_FOUND);
+		}
+
+		FileUtil.deleteFile("upload", file.getStorePath());
+		fileService.delete(file);
+
+		response.put("message", "File deleted");
+		
+		return new ResponseEntity<Map<String, Object> >(response, HttpStatus.OK);
+	}
+	
+	@GetMapping("/clients/files/{fileName:.+}")
+	public ResponseEntity<Resource> uploadFile(@PathVariable String fileName) {
+
+		Path filePath = Paths.get("upload").resolve(fileName).toAbsolutePath();
+		Resource resource = null;
+
+		try {
+
+			resource = new UrlResource(filePath.toUri());
+
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+
+		if (!resource.exists() && !resource.isReadable()) {
+			throw new RuntimeException("Can't read photo " + fileName);
+		}
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+		return new ResponseEntity<Resource>(resource, headers, HttpStatus.OK);
+	}
+
+
 }

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.collect.api.model.User;
 import com.collect.api.service.IUserService;
 
+@SuppressWarnings("deprecation")
 @Component
 public class AditionalInfoToken implements TokenEnhancer{
 

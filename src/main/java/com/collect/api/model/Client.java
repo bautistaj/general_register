@@ -55,4 +55,5 @@ public class Client implements Serializable {
 	private Date createdAt;
 	
 	private String photo;	
+	
 }
